@@ -1,31 +1,23 @@
-import { useEffect, useState } from "react";
 import CarCard from "../../../../component/CarCard/CarCard";
+import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 
 const Car_inventory = () => {
-    const [cars, setCars] = useState([]);
-    const [error, setError] = useState(null);
 
-    const loadData = async () => {
-        try {
-            const response = await fetch("cars.json");
-
-            if (!response.ok) {
-                throw new Error("Failed to fetch data");
-            }
-
-            const data = await response.json();
-            setCars(data);
-        } catch (error) {
-            setError(error.message);
+    const {isFetching, isError, data} = useQuery({
+        queryKey: ["carsData"],
+        queryFn: async() => {
+            const response = await axios.get("http://localhost:3009/cars")
+            return response.data;
         }
-    };
+    })
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    if(isFetching){
+        return <p>Loading...</p>
+    }
 
-    if (error) {
-        return <div className="text-red-500">{error}</div>;
+    if(isError){
+        return <p>Error..</p>
     }
 
     return (
@@ -34,7 +26,7 @@ const Car_inventory = () => {
                 Pick Up Your favorite car
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {cars.map((car) => (
+                {data.map((car) => (
                     <CarCard key={car.id} car={car}></CarCard>
                 ))}
             </div>
